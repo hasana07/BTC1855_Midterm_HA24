@@ -1,5 +1,4 @@
-Coding in R Assignment 4 - Hasan Abdo
-Cleaning Martians Data
+Coding in R Midterm Assignment - Hasan Abdo
 
 This file will contain the rough plan of what I am trying to do within the midterm assignment.
 
