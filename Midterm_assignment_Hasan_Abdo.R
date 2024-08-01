@@ -42,4 +42,32 @@ glimpse(trip_data)
 #although this shows 70 unique start/end station IDs, we can see that there's 74 unique start and ending station names, which may need me to look further into the discrepancy. Some stations could be using the same ID. 
 print(status(trip_data))
 
-freq(station_data)
+#Can show the most frequently used start and end stations, also the frequency of subscribers vs non-subscribers. 
+freq(trip_data)
+#Shows a table of unique zip codes and their frequencies (recommend by the website), I can already see a couple of missing values and possible outliers from this
+freq((trip_data$zip_code))
+#Only useful for mean of trip duration
+print(profiling_num(trip_data))
+
+#final look at the data, also helps see outliers
+describe(trip_data)
+
+
+
+#EDA on the weather data set
+#overview of the data set
+glimpse(weather_data)
+
+print(status(weather_data))
+
+#may need to add a "No event" label for no events. Also, there's 2 different "rain" values for the variable events. 
+freq(weather_data)
+
+#mean of different values is probably the most important output this function gives
+print(profiling_num(weather_data))
+#summarizing data and taking final looks 
+describe(weather_data)
+
+
+
+
