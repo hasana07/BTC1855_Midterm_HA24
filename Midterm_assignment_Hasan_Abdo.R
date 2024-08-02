@@ -69,5 +69,36 @@ print(profiling_num(weather_data))
 describe(weather_data)
 
 
+##Data cleaning##
+#The following will contain steps I take in order to clean the data, will also remove any outliers here
+#Loading tidyr and dplyr packages for later use 
+library("dplyr")
+library("tidyr")
+
+#Data cleaning-Station Data 
+#Data set seems to be clean, nothing to really change here. There are no missing values or any evident outliers. 
+
+#Data cleaning-Trip Data 
+#creating a new data frame to do cleaning and conserve "raw" data 
+clean_trip <- trip_data
+
+#turning missing and non-sensical values to NAs, before removing them. 
+#these are supposed home zip codes of subscribers, however customers manually input these and it was noted could be unreliable. 
+clean_trip$zip_code[clean_trip$zip_code == ""] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "v6z2x"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "nil"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "M4S1P"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "99999"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "9990540"] <- NA
+#now on the lower end..
+clean_trip$zip_code[clean_trip$zip_code == "0"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "1"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "100"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "1000"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "10000"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "100004"] <- NA
+
+#Finding trips that start and end at the same station, with duration less than 3 minutes (since these are "cancelled trips")
+
 
 
