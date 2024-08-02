@@ -114,3 +114,16 @@ print(cancelled_trips_ID)
 #removing those trips from the clean dataset 
 clean_trip <- clean_trip %>% 
   filter(!(start_station_id == end_station_id & duration < 180))
+
+#removing outliers
+#in the duration column, the longest bike trip recorded was 17270400 seconds, which roughly translates to 199 days. 
+#I will remove this data point since the next longest bike trip was recorded to be only 8 days, which is a large difference in comparison
+clean_trip <- clean_trip %>% 
+  filter(!(duration == 17270400))
+
+#getting the ID of this outlier
+duration_outlier <- trip_data %>% 
+  filter(duration == 17270400) %>% 
+  select(id)
+#displaying the ID
+print(duration_outlier)
