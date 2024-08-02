@@ -99,6 +99,18 @@ clean_trip$zip_code[clean_trip$zip_code == "10000"] <- NA
 clean_trip$zip_code[clean_trip$zip_code == "100004"] <- NA
 
 #Finding trips that start and end at the same station, with duration less than 3 minutes (since these are "cancelled trips")
+cancelled_trips <- trip_data %>% 
+  filter(start_station_id == end_station_id & duration < 180)
 
+#finding the number of these trips 
+nrow(cancelled_trips)
 
+#Recording trip TDs for those "cancelled trips"
+cancelled_trips_ID <- cancelled_trips %>% 
+  select(id)
+#Displaying IDs
+print(cancelled_trips_ID)
 
+#removing those trips from the clean dataset 
+clean_trip <- clean_trip %>% 
+  filter(!(start_station_id == end_station_id & duration < 180))
