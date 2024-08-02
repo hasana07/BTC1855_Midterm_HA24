@@ -138,5 +138,6 @@ clean_weather$events[clean_weather$events == ""] <- "No Event"
 #There is 1 "rain" and 280 "Rain", which need to be combined. I'll change rain to Rain
 clean_weather$events[clean_weather$events == "rain"] <- "Rain"
 
-
-
+#Changing the "T" or Trace values in the precipitation_inches column to 0.09 to then convert the column as numeric. 
+clean_weather$precipitation_inches[clean_weather$precipitation_inches == "T"] <- "0.009"
+clean_weather$precipitation_inches <- as.numeric(as.character(clean_weather$precipitation_inches))
