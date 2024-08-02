@@ -69,5 +69,75 @@ print(profiling_num(weather_data))
 describe(weather_data)
 
 
+##Data cleaning##
+#The following will contain steps I take in order to clean the data, will also remove any outliers here
+#Loading tidyr and dplyr packages for later use 
+library("dplyr")
+library("tidyr")
+
+#Data cleaning-Station Data 
+#Data set seems to be clean, nothing to really change here. There are no missing values or any evident outliers. 
+
+#Data cleaning-Trip Data 
+#creating a new data frame to do cleaning and conserve "raw" data 
+clean_trip <- trip_data
+
+#turning missing and non-sensical values to NAs, before removing them. 
+#these are supposed home zip codes of subscribers, however customers manually input these and it was noted could be unreliable. 
+clean_trip$zip_code[clean_trip$zip_code == ""] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "v6z2x"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "nil"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "M4S1P"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "99999"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "9990540"] <- NA
+#now on the lower end..
+clean_trip$zip_code[clean_trip$zip_code == "0"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "1"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "100"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "1000"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "10000"] <- NA
+clean_trip$zip_code[clean_trip$zip_code == "100004"] <- NA
+
+#Finding trips that start and end at the same station, with duration less than 3 minutes (since these are "cancelled trips")
+cancelled_trips <- trip_data %>% 
+  filter(start_station_id == end_station_id & duration < 180)
+
+#finding the number of these trips 
+nrow(cancelled_trips)
+
+#Recording trip TDs for those "cancelled trips"
+cancelled_trips_ID <- cancelled_trips %>% 
+  select(id)
+#Displaying IDs
+print(cancelled_trips_ID)
+
+#removing those trips from the clean dataset 
+clean_trip <- clean_trip %>% 
+  filter(!(start_station_id == end_station_id & duration < 180))
+
+#removing outliers
+#in the duration column, the longest bike trip recorded was 17270400 seconds, which roughly translates to 199 days. 
+#I will remove this data point since the next longest bike trip was recorded to be only 8 days, which is a large difference in comparison
+clean_trip <- clean_trip %>% 
+  filter(!(duration == 17270400))
+
+#getting the ID of this outlier
+duration_outlier <- trip_data %>% 
+  filter(duration == 17270400) %>% 
+  select(id)
+#displaying the ID
+print(duration_outlier)
 
 
+#Data cleaning-Weather Data 
+#creating a new data frame to do cleaning and conserve "raw" data 
+clean_weather <- weather_data
+
+#Changing the "" in the events variable to "No Event".
+clean_weather$events[clean_weather$events == ""] <- "No Event"
+#There is 1 "rain" and 280 "Rain", which need to be combined. I'll change rain to Rain
+clean_weather$events[clean_weather$events == "rain"] <- "Rain"
+
+#Changing the "T" or Trace values in the precipitation_inches column to 0.09 to then convert the column as numeric. 
+clean_weather$precipitation_inches[clean_weather$precipitation_inches == "T"] <- "0.009"
+clean_weather$precipitation_inches <- as.numeric(as.character(clean_weather$precipitation_inches))
