@@ -127,3 +127,16 @@ duration_outlier <- trip_data %>%
   select(id)
 #displaying the ID
 print(duration_outlier)
+
+
+#Data cleaning-Weather Data 
+#creating a new data frame to do cleaning and conserve "raw" data 
+clean_weather <- weather_data
+
+#Changing the "" in the events variable to "No Event".
+clean_weather$events[clean_weather$events == ""] <- "No Event"
+#There is 1 "rain" and 280 "Rain", which need to be combined. I'll change rain to Rain
+clean_weather$events[clean_weather$events == "rain"] <- "Rain"
+
+
+
