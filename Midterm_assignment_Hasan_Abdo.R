@@ -189,4 +189,26 @@ hist(clean_trip_wday$hour,
 #adding x-axis that has more ticks than default for better readability 
 axis(1, at = seq(0, 23, by = 1))
 
+#filtering for trips within rush hours only
+#determined those rush hours to be from 7-10 am, and 4-7pm.This makes sense for times when people go to and come back from work. 
+trip_rush_hours <- clean_trip_wday %>% 
+  filter(hour %in% c(7, 8, 9, 16, 17, 18))
+
+#using the freq function from funmodeling package to determine 10 most frequent start stations during the rush hours
+rushstart <- freq(trip_rush_hours$start_station_name)
+#selecting the top 10 elements (these are already ordered from most freq to least)
+top_10_start_wday <- head(rushstart, 10)
+#changung column name 
+names(top_10_start_wday) [1] <- "10 most frequent bike starting stations during rush hours"
+#viewing this table
+view(top_10_start_wday)
+
+#using the freq function from funmodeling package to determine 10 most frequent end stations during the rush hours
+rushend <- freq(trip_rush_hours$end_station_name)
+#selecting the top 10 elements (these are already ordered from most freq to least)
+top_10_end_wday <- head(rushend, 10)
+names(top_10_end_wday) [1] <- "10 most frequent bike ending stations during rush hours"
+#viewing the table
+view(top_10_end_wday)
+
 
