@@ -141,3 +141,26 @@ clean_weather$events[clean_weather$events == "rain"] <- "Rain"
 #Changing the "T" or Trace values in the precipitation_inches column to 0.09 to then convert the column as numeric. 
 clean_weather$precipitation_inches[clean_weather$precipitation_inches == "T"] <- "0.009"
 clean_weather$precipitation_inches <- as.numeric(as.character(clean_weather$precipitation_inches))
+
+
+##--RUSH HOURS--##
+
+#loading lubridate library to convert date values to POSIXct
+library(lubridate)
+#convert start and end dates to to POSIXct in order in order to manipulate the numbers 
+clean_trip$start_date <- mdy_hm(clean_trip$start_date)
+clean_trip$end_date <- mdy_hm(clean_trip$end_date)
+#making a copy of the clean trip data set to add the rush hour columns/analysis to add rush hour date/time columns
+clean_trip1 <- clean_trip
+
+#creating a new column for a mid-point between the start and end dates/times (serves as the mean time) I can use this average time to determine the rush hours.
+clean_trip1 <- clean_trip1 %>%
+  mutate(midpoint_time = as.POSIXct((as.numeric(start_date) + as.numeric(end_date)) / 2, origin = "1970-01-01", tz = "UTC"))
+
+#creating a new column to extract the weekday, and the "hour" from the mid-point time. 
+clean_trip1 <- clean_trip1 %>%
+  mutate(weekday = wday(midpoint_time, label = TRUE, abbr = FALSE),
+  hour = hour(midpoint_time))
+
+
+
