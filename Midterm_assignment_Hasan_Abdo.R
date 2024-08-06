@@ -249,3 +249,6 @@ names(top_10_end_wkend) [1] <- "10 most frequent bike ending stations during wee
 view(top_10_end_wkend)
 
 
+
+
+
