@@ -153,6 +153,12 @@ clean_trip$end_date <- mdy_hm(clean_trip$end_date)
 #making a copy of the clean trip data set to add the rush hour columns/analysis to add rush hour date/time columns
 clean_trip1 <- clean_trip
 
+#filtering out all the trips that take longer than 5 hours for rush hour analysis
+#assuming each person is taking their bike from around where they live to their work (counting this as a trip)
+#The furthest 2 Bay Area cities (from each other) included in this data are San Francisco and San Jose. According to Google Maps, a bike ride from those cities should take around 5 hours. While this can probably be accomplished in a shorter time if using an electric bike, I want to conserve as much data as possible. 
+clean_trip1 <- clean_trip1 %>% 
+  filter(!(duration > 18000))
+
 #creating a new column for a mid-point between the start and end dates/times (serves as the mean time) I can use this average time to determine the rush hours.
 clean_trip1 <- clean_trip1 %>%
   mutate(midpoint_time = as.POSIXct((as.numeric(start_date) + as.numeric(end_date)) / 2, origin = "1970-01-01", tz = "UTC"))
@@ -162,5 +168,16 @@ clean_trip1 <- clean_trip1 %>%
   mutate(weekday = wday(midpoint_time, label = TRUE, abbr = FALSE),
   hour = hour(midpoint_time))
 
+clean_trip_wday <- clean_trip1 %>%
+  filter(weekday %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"))
 
+hist(clean_trip_wday$hour, 
+     breaks = 24,         
+     main = "Histogram of Hours",
+     xlab = "Hour of the Day",
+     ylab = "Frequency",
+     col = "lightblue",
+     xaxt = "n")
 
+axis(1, 
+     at = seq(0, 23, by = 1))
