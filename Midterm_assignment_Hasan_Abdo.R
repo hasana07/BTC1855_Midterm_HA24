@@ -212,3 +212,40 @@ names(top_10_end_wday) [1] <- "10 most frequent bike ending stations during rush
 view(top_10_end_wday)
 
 
+#now to determine the 10 most frequent start and end stations for weekends..
+
+#creating new data frame 
+#using a new data frame because I am not taking out the 5-hour outliers I took out for the weekdays. This is because people work on weekdays, not weekends, so weekend data shouldn't account for the same trip patterns since people aren't going to be using the bikes to commute to work on weekends. 
+clean_trip2 <- clean_trip
+
+#adding mid-point time column 
+clean_trip2 <- clean_trip2 %>%
+  mutate(midpoint_time = as.POSIXct((as.numeric(start_date) + as.numeric(end_date)) / 2, origin = "1970-01-01", tz = "UTC"))
+
+#creating a new column to extract the weekend, and the "hour" from the mid-point time, similar to what was done for weekdays
+clean_trip2 <- clean_trip2 %>%
+  mutate(weekday = wday(midpoint_time, label = TRUE, abbr = FALSE),
+         hour = hour(midpoint_time))
+#filtering for weekdays only 
+clean_trip_wkend <- clean_trip2 %>%
+  filter(weekday %in% c("Saturday", "Sunday"))
+
+#using the freq function from funmodeling package to determine 10 most frequent start stations during the weekends
+wkendstart <- freq(clean_trip_wkend$start_station_name)
+#selecting the top 10 elements (these are already ordered from most freq to least)
+top_10_start_wkend <- head(wkendstart, 10)
+#changung column name 
+names(top_10_start_wkend) [1] <- "10 most frequent bike starting stations during weekends"
+#viewing this table
+view(top_10_start_wkend)
+
+#using the freq function from funmodeling package to determine 10 most frequent end stations during the weekends
+wkendend <- freq(clean_trip_wkend$end_station_name)
+#selecting the top 10 elements (these are already ordered from most freq to least)
+top_10_end_wkend <- head(wkendend, 10)
+#changung column name 
+names(top_10_end_wkend) [1] <- "10 most frequent bike ending stations during weekends"
+#viewing this table
+view(top_10_end_wkend)
+
+
