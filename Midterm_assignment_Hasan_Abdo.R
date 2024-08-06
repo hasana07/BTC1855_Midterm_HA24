@@ -159,6 +159,14 @@ clean_trip1 <- clean_trip
 clean_trip1 <- clean_trip1 %>% 
   filter(!(duration > 18000))
 
+#identifying those "outliers" I took out
+duration_outlier2 <- clean_trip %>% 
+  filter(duration > 18000) %>% 
+  select(id)
+
+#displaying the IDs of those whose trips were longer than 5 hours
+print(duration_outlier2)
+
 #creating a new column for a mid-point between the start and end dates/times (serves as the mean time) I can use this average time to determine the rush hours.
 clean_trip1 <- clean_trip1 %>%
   mutate(midpoint_time = as.POSIXct((as.numeric(start_date) + as.numeric(end_date)) / 2, origin = "1970-01-01", tz = "UTC"))
@@ -167,17 +175,18 @@ clean_trip1 <- clean_trip1 %>%
 clean_trip1 <- clean_trip1 %>%
   mutate(weekday = wday(midpoint_time, label = TRUE, abbr = FALSE),
   hour = hour(midpoint_time))
-
+#filtering for weekdays only 
 clean_trip_wday <- clean_trip1 %>%
   filter(weekday %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"))
-
+#creating a histogram that shows the most common hours - will help determine rush hours 
 hist(clean_trip_wday$hour, 
      breaks = 24,         
-     main = "Histogram of Hours",
-     xlab = "Hour of the Day",
+     main = "Histogram identifying bike trip rush hours",
+     xlab = "Hour of the Day (24-hr)",
      ylab = "Frequency",
      col = "lightblue",
      xaxt = "n")
+#adding x-axis that has more ticks than default for better readability 
+axis(1, at = seq(0, 23, by = 1))
 
-axis(1, 
-     at = seq(0, 23, by = 1))
+
