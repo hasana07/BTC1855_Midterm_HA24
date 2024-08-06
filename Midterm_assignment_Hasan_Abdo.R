@@ -248,7 +248,34 @@ names(top_10_end_wkend) [1] <- "10 most frequent bike ending stations during wee
 #viewing this table
 view(top_10_end_wkend)
 
+## Average Monthly Utilization calculation ##
+#creating new data frame to add month column to 
+trip_month <- clean_trip
+#will add a column for start month and end month, then remove the rows where those two don't match up. Since I am calculating utilization per month, I do not want the trips to start in one month and end in another, since that could mess up results.
 
+trip_month <- trip_month %>% 
+  mutate(start_month = month(start_date, label = TRUE, abbr = FALSE))
 
+trip_month <- trip_month %>% 
+  mutate(end_month = month(end_date, label = TRUE, abbr = FALSE))
 
+#to check for those months, I can do
+sum(trip_month$start_month != trip_month$end_month)
+#the result is there are 36 such trips! while this may be trivial given the size of data, I think it is important to point out 
+
+month_outlier <- trip_month %>% 
+  filter(trip_month$start_month != trip_month$end_month) %>% 
+  select(id)
+
+view(month_outlier)
+
+#going back to the analysis..
+#remove those outliers from data set
+trip_month <- trip_month %>% 
+  filter(trip_month$start_month == trip_month$end_month)
+
+#making a new month column called month 
+#doesn't matter if we choose start or end date here, month value will be the same since we removed outliers
+trip_month <- trip_month %>% 
+  mutate(month = month(start_date, label = TRUE, abbr = FALSE))
 
