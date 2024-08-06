@@ -279,3 +279,15 @@ trip_month <- trip_month %>%
 trip_month <- trip_month %>% 
   mutate(month = month(start_date, label = TRUE, abbr = FALSE))
 
+#calculating avg monthly utilization done which = total time bike used in month / time in a month (2628000 seconds)
+
+#creating a table with the average utilization per month 
+avg_utilization <- trip_month %>% 
+#creating "buckets" which are months here   
+  group_by(month) %>% 
+#using summarise function adding an average utilization column  
+  summarise(avg_utilization = (sum(duration)/2628000)) %>% 
+#destroying the created buckets
+  ungroup()
+
+
