@@ -141,3 +141,114 @@ clean_weather$events[clean_weather$events == "rain"] <- "Rain"
 #Changing the "T" or Trace values in the precipitation_inches column to 0.09 to then convert the column as numeric. 
 clean_weather$precipitation_inches[clean_weather$precipitation_inches == "T"] <- "0.009"
 clean_weather$precipitation_inches <- as.numeric(as.character(clean_weather$precipitation_inches))
+
+
+##--RUSH HOURS--##
+
+#loading lubridate library to convert date values to POSIXct
+library(lubridate)
+#convert start and end dates to to POSIXct in order in order to manipulate the numbers 
+clean_trip$start_date <- mdy_hm(clean_trip$start_date)
+clean_trip$end_date <- mdy_hm(clean_trip$end_date)
+#making a copy of the clean trip data set to add the rush hour columns/analysis to add rush hour date/time columns
+clean_trip1 <- clean_trip
+
+#filtering out all the trips that take longer than 5 hours for rush hour analysis
+#assuming each person is taking their bike from around where they live to their work (counting this as a trip)
+#The furthest 2 Bay Area cities (from each other) included in this data are San Francisco and San Jose. According to Google Maps, a bike ride from those cities should take around 5 hours. While this can probably be accomplished in a shorter time if using an electric bike, I want to conserve as much data as possible. 
+clean_trip1 <- clean_trip1 %>% 
+  filter(!(duration > 18000))
+
+#identifying those "outliers" I took out
+duration_outlier2 <- clean_trip %>% 
+  filter(duration > 18000) %>% 
+  select(id)
+
+#displaying the IDs of those whose trips were longer than 5 hours
+print(duration_outlier2)
+
+#creating a new column for a mid-point between the start and end dates/times (serves as the mean time) I can use this average time to determine the rush hours.
+clean_trip1 <- clean_trip1 %>%
+  mutate(midpoint_time = as.POSIXct((as.numeric(start_date) + as.numeric(end_date)) / 2, origin = "1970-01-01", tz = "UTC"))
+
+#creating a new column to extract the weekday, and the "hour" from the mid-point time. 
+clean_trip1 <- clean_trip1 %>%
+  mutate(weekday = wday(midpoint_time, label = TRUE, abbr = FALSE),
+  hour = hour(midpoint_time))
+#filtering for weekdays only 
+clean_trip_wday <- clean_trip1 %>%
+  filter(weekday %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"))
+#creating a histogram that shows the most common hours - will help determine rush hours 
+hist(clean_trip_wday$hour, 
+     breaks = 24,         
+     main = "Histogram identifying bike trip rush hours",
+     xlab = "Hour of the Day (24-hr)",
+     ylab = "Frequency",
+     col = "lightblue",
+     xaxt = "n")
+#adding x-axis that has more ticks than default for better readability 
+axis(1, at = seq(0, 23, by = 1))
+
+#filtering for trips within rush hours only
+#determined those rush hours to be from 7-10 am, and 4-7pm.This makes sense for times when people go to and come back from work. 
+trip_rush_hours <- clean_trip_wday %>% 
+  filter(hour %in% c(7, 8, 9, 16, 17, 18))
+
+#using the freq function from funmodeling package to determine 10 most frequent start stations during the rush hours
+rushstart <- freq(trip_rush_hours$start_station_name)
+#selecting the top 10 elements (these are already ordered from most freq to least)
+top_10_start_wday <- head(rushstart, 10)
+#changung column name 
+names(top_10_start_wday) [1] <- "10 most frequent bike starting stations during rush hours"
+#viewing this table
+view(top_10_start_wday)
+
+#using the freq function from funmodeling package to determine 10 most frequent end stations during the rush hours
+rushend <- freq(trip_rush_hours$end_station_name)
+#selecting the top 10 elements (these are already ordered from most freq to least)
+top_10_end_wday <- head(rushend, 10)
+names(top_10_end_wday) [1] <- "10 most frequent bike ending stations during rush hours"
+#viewing the table
+view(top_10_end_wday)
+
+
+#now to determine the 10 most frequent start and end stations for weekends..
+
+#creating new data frame 
+#using a new data frame because I am not taking out the 5-hour outliers I took out for the weekdays. This is because people work on weekdays, not weekends, so weekend data shouldn't account for the same trip patterns since people aren't going to be using the bikes to commute to work on weekends. 
+clean_trip2 <- clean_trip
+
+#adding mid-point time column 
+clean_trip2 <- clean_trip2 %>%
+  mutate(midpoint_time = as.POSIXct((as.numeric(start_date) + as.numeric(end_date)) / 2, origin = "1970-01-01", tz = "UTC"))
+
+#creating a new column to extract the weekend, and the "hour" from the mid-point time, similar to what was done for weekdays
+clean_trip2 <- clean_trip2 %>%
+  mutate(weekday = wday(midpoint_time, label = TRUE, abbr = FALSE),
+         hour = hour(midpoint_time))
+#filtering for weekdays only 
+clean_trip_wkend <- clean_trip2 %>%
+  filter(weekday %in% c("Saturday", "Sunday"))
+
+#using the freq function from funmodeling package to determine 10 most frequent start stations during the weekends
+wkendstart <- freq(clean_trip_wkend$start_station_name)
+#selecting the top 10 elements (these are already ordered from most freq to least)
+top_10_start_wkend <- head(wkendstart, 10)
+#changung column name 
+names(top_10_start_wkend) [1] <- "10 most frequent bike starting stations during weekends"
+#viewing this table
+view(top_10_start_wkend)
+
+#using the freq function from funmodeling package to determine 10 most frequent end stations during the weekends
+wkendend <- freq(clean_trip_wkend$end_station_name)
+#selecting the top 10 elements (these are already ordered from most freq to least)
+top_10_end_wkend <- head(wkendend, 10)
+#changung column name 
+names(top_10_end_wkend) [1] <- "10 most frequent bike ending stations during weekends"
+#viewing this table
+view(top_10_end_wkend)
+
+
+
+
+
