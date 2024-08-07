@@ -291,3 +291,49 @@ avg_utilization <- trip_month %>%
   ungroup()
 
 
+## Weather correlation ##
+#converting date in the weather column to date format
+clean_weather$date <- mdy(clean_weather$date)
+
+#removing time element from the trip start & end dates to match weather date
+clean_trip3 <- clean_trip %>%
+  mutate(start_date = as.Date(mdy_hm(start_date)), end_date = as.Date(mdy_hm(end_date)))
+
+#since I am planning to later group my data by date (so 1 row for each trip by date), it may be a good idea to remove any values that are longer than 1 day, or where the start and end date are different values..
+clean_trip3 <- clean_trip3 %>% 
+  filter(clean_trip3$start_date == clean_trip3$end_date)
+
+#now I want to add a midpoint variable for the start and end date to combine those 2 like I did earlier for the rush hour analysis 
+clean_trip3 <- clean_trip3 %>%
+  mutate(midpoint_date = as.Date((as.numeric(start_date) + as.numeric(end_date)) / 2, origin = "1970-01-01"))
+
+
+#joining the station data with trip data 
+weather_trip_combined <- clean_trip3 %>% 
+#using left joint to join the trip data with station data first in order to add a "city" column. Joined by station IDs here.
+  left_join(station_data, by=c("start_station_id"="id")) %>%
+#grouping the data by start date and city in order to not get multiple dates for the same day within the same city
+  group_by(midpoint_date, city) %>%
+#Shows total trips per day within a city, and total duration of all trips within the same day and city to use later for correlation
+  summarise(total_trips = n(), total_duration = sum(duration)) %>% 
+#joining the weather data into the large trip data using a left join to keep trip data
+  left_join(clean_weather, by=c("city","midpoint_date"="date")) %>% 
+  ungroup()
+
+
+#setting up correlation variables that will be used the plot, here I am adding both duration values 
+selected_cor <- weather_trip_combined %>% 
+  select(total_trips, total_duration, max_temperature_f, mean_temperature_f, min_temperature_f, max_visibility_miles, mean_visibility_miles, min_visibility_miles, max_wind_Speed_mph, mean_wind_speed_mph, max_gust_speed_mph, precipitation_inches)
+
+#converting columns to numeric since cor only takes numeric values
+selected_cor <- as.data.frame(sapply(selected_cor, as.numeric))
+
+library(corrplot)
+#creating correlation matrix using the variables selected previously, using pairwise.complete.obs argument in order to calculate pairwise correlations not disregarding rows with NA values
+weather_cor <- cor(selected_cor, use = "pairwise.complete.obs")
+#making the correlation matrix into a data frame
+weather_cor_df <- as.data.frame(weather_cor)
+
+#plotting correlations using the corrplot function
+#type=upper argument essentially shows the upper triangular matrix so it isn't mirrored
+corrplot(weather_cor, method = "color", type = "upper")
