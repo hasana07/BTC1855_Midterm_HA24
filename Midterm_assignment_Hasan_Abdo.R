@@ -5,18 +5,28 @@
 #Used function read.csv to load csv file. Note to reviewer, make sure the file is in your own working directory and that you change the file path. 
 #Argument header= TRUE indicate there is a header.  
 
-station_data <- read.csv("~/Documents/BTC1855 Coding in R/Midterm_Hasan/station.csv", header = TRUE)
-trip_data <- read.csv("~/Documents/BTC1855 Coding in R/Midterm_Hasan/trip.csv", header = TRUE)
-weather_data <- read.csv("~/Documents/BTC1855 Coding in R/Midterm_Hasan/weather.csv", header = TRUE)
+# SK (Points taken) When you use a project/repo, your environment is re-defined as your project folder. To ensure 
+# code portability, make sure that you define file paths within the environment. Such as:
+
+#station_data <- read.csv("~/Documents/BTC1855 Coding in R/Midterm_Hasan/station.csv", header = TRUE)
+station_data <- read.csv("station.csv", header = TRUE)
+#trip_data <- read.csv("~/Documents/BTC1855 Coding in R/Midterm_Hasan/trip.csv", header = TRUE)
+trip_data <- read.csv("trip.csv", header = TRUE)
+#weather_data <- read.csv("~/Documents/BTC1855 Coding in R/Midterm_Hasan/weather.csv", header = TRUE)
+weather_data <- read.csv("weather.csv", header = TRUE)
 
 #starting EDA (Exploratory Data Analysis)
 #roughly using the steps outlined in the recommended link: https://blog.datascienceheroes.com/exploratory-data-analysis-in-r-intro/
 
 #Please note any inferences/conclusions will be included in the written report. 
 #Installing and loading appropriate packages:
-install.packages("tidyverse")
-install.packages("funModeling")
-install.packages("Hmisc")
+# SK  It may at times be okay to include the code installing packages but no okay to enforce 
+# re-installing packages every time a code is sourced. Best practice is to include these 
+# lines and comment them. Then ask the user to un-comment when necessary.
+
+#install.packages("tidyverse")
+#install.packages("funModeling")
+#install.packages("Hmisc")
 
 library(tidyverse) 
 library(funModeling) 
@@ -40,6 +50,7 @@ describe(station_data)
 glimpse(trip_data)
 
 #although this shows 70 unique start/end station IDs, we can see that there's 74 unique start and ending station names, which may need me to look further into the discrepancy. Some stations could be using the same ID. 
+# SK (Points taken) Good catch. Any recommendations to the team?
 print(status(trip_data))
 
 #Can show the most frequently used start and end stations, also the frequency of subscribers vs non-subscribers. 
@@ -64,6 +75,11 @@ print(status(weather_data))
 freq(weather_data)
 
 #mean of different values is probably the most important output this function gives
+# SK  The profile also gives you important information about the "shape" of the distribution through std_dev, 
+# variation coefficient, skewness and kurtosis. As an example, kurtosis is useful for identifying whether a data set 
+# has outliers or is skewed. High kurtosis can indicate the presence of outliers or heavy tails, while low kurtosis 
+# can indicate that the data is more normally distributed. I suggest you read up on the above to understand what 
+# these numbers tell you about the shape of the data.
 print(profiling_num(weather_data))
 #summarizing data and taking final looks 
 describe(weather_data)
@@ -77,6 +93,8 @@ library("tidyr")
 
 #Data cleaning-Station Data 
 #Data set seems to be clean, nothing to really change here. There are no missing values or any evident outliers. 
+# SK What about the discrepancy you identified above, where there are 70 ids but 74 names? 
+# What are your recommendations to the data scientists when using this table?
 
 #Data cleaning-Trip Data 
 #creating a new data frame to do cleaning and conserve "raw" data 
@@ -84,6 +102,8 @@ clean_trip <- trip_data
 
 #turning missing and non-sensical values to NAs, before removing them. 
 #these are supposed home zip codes of subscribers, however customers manually input these and it was noted could be unreliable. 
+# SK If a column is established as non-reliable, it is often better to remove it from the dataset so that it does not get thrown 
+# into some downstream analysis by mistake.
 clean_trip$zip_code[clean_trip$zip_code == ""] <- NA
 clean_trip$zip_code[clean_trip$zip_code == "v6z2x"] <- NA
 clean_trip$zip_code[clean_trip$zip_code == "nil"] <- NA
@@ -172,6 +192,7 @@ clean_trip1 <- clean_trip1 %>%
   mutate(midpoint_time = as.POSIXct((as.numeric(start_date) + as.numeric(end_date)) / 2, origin = "1970-01-01", tz = "UTC"))
 
 #creating a new column to extract the weekday, and the "hour" from the mid-point time. 
+# SK  It would be easier to filter the week days by number (1 to 5) if you had set wday(..., label=F)
 clean_trip1 <- clean_trip1 %>%
   mutate(weekday = wday(midpoint_time, label = TRUE, abbr = FALSE),
   hour = hour(midpoint_time))
@@ -195,18 +216,22 @@ trip_rush_hours <- clean_trip_wday %>%
   filter(hour %in% c(7, 8, 9, 16, 17, 18))
 
 #using the freq function from funmodeling package to determine 10 most frequent start stations during the rush hours
+# SK As mentioned above, how does the station name discrepancy affect this finding?
 rushstart <- freq(trip_rush_hours$start_station_name)
 #selecting the top 10 elements (these are already ordered from most freq to least)
 top_10_start_wday <- head(rushstart, 10)
 #changung column name 
+# SK This is a spectacularly bad column name, even if the table is only intended to be pasted into a document.
 names(top_10_start_wday) [1] <- "10 most frequent bike starting stations during rush hours"
 #viewing this table
 view(top_10_start_wday)
 
 #using the freq function from funmodeling package to determine 10 most frequent end stations during the rush hours
+# SK As mentioned above, how does the station name discrepancy affect this finding?
 rushend <- freq(trip_rush_hours$end_station_name)
 #selecting the top 10 elements (these are already ordered from most freq to least)
 top_10_end_wday <- head(rushend, 10)
+# SK This is a spectacularly bad column name, even if the table is only intended to be pasted into a document.
 names(top_10_end_wday) [1] <- "10 most frequent bike ending stations during rush hours"
 #viewing the table
 view(top_10_end_wday)
@@ -231,19 +256,23 @@ clean_trip_wkend <- clean_trip2 %>%
   filter(weekday %in% c("Saturday", "Sunday"))
 
 #using the freq function from funmodeling package to determine 10 most frequent start stations during the weekends
+# SK As mentioned above, how does the station name discrepancy affect this finding?
 wkendstart <- freq(clean_trip_wkend$start_station_name)
 #selecting the top 10 elements (these are already ordered from most freq to least)
 top_10_start_wkend <- head(wkendstart, 10)
 #changung column name 
+# SK This is a spectacularly bad column name, even if the table is only intended to be pasted into a document.
 names(top_10_start_wkend) [1] <- "10 most frequent bike starting stations during weekends"
 #viewing this table
 view(top_10_start_wkend)
 
 #using the freq function from funmodeling package to determine 10 most frequent end stations during the weekends
+# SK As mentioned above, how does the station name discrepancy affect this finding?
 wkendend <- freq(clean_trip_wkend$end_station_name)
 #selecting the top 10 elements (these are already ordered from most freq to least)
 top_10_end_wkend <- head(wkendend, 10)
 #changung column name 
+# SK This is a spectacularly bad column name, even if the table is only intended to be pasted into a document.
 names(top_10_end_wkend) [1] <- "10 most frequent bike ending stations during weekends"
 #viewing this table
 view(top_10_end_wkend)
@@ -252,7 +281,7 @@ view(top_10_end_wkend)
 #creating new data frame to add month column to 
 trip_month <- clean_trip
 #will add a column for start month and end month, then remove the rows where those two don't match up. Since I am calculating utilization per month, I do not want the trips to start in one month and end in another, since that could mess up results.
-
+# SK  Good catch! IRL, it would be best to discuss with the team on how to best handle this.
 trip_month <- trip_month %>% 
   mutate(start_month = month(start_date, label = TRUE, abbr = FALSE))
 
@@ -288,6 +317,7 @@ avg_utilization <- trip_month %>%
 #using summarise function adding an average utilization column  
   summarise(avg_utilization = (sum(duration)/2628000)) %>% 
 #destroying the created buckets
+# SK  Redundant, because summarise() function result is replacing the original grouped table.
   ungroup()
 
 
@@ -296,14 +326,22 @@ avg_utilization <- trip_month %>%
 clean_weather$date <- mdy(clean_weather$date)
 
 #removing time element from the trip start & end dates to match weather date
+# SK (Points taken) When I run this line, the start_date and end_date columns are coerced to NULL
+# because you can't run mdy_hm() on a POSIX column. Fixing the code so that I can run the rest.
 clean_trip3 <- clean_trip %>%
-  mutate(start_date = as.Date(mdy_hm(start_date)), end_date = as.Date(mdy_hm(end_date)))
+  mutate(start_date = as.Date(start_date), end_date = as.Date(end_date))
+#clean_trip3 <- clean_trip %>%
+#  mutate(start_date = as.Date(mdy_hm(start_date)), end_date = as.Date(mdy_hm(end_date)))
 
 #since I am planning to later group my data by date (so 1 row for each trip by date), it may be a good idea to remove any values that are longer than 1 day, or where the start and end date are different values..
+# SK  When I run this line, the dataframe ends up with 0 rows and the rest of the analysis 
+# can not be run. I am fixing the code above. 
 clean_trip3 <- clean_trip3 %>% 
   filter(clean_trip3$start_date == clean_trip3$end_date)
 
 #now I want to add a midpoint variable for the start and end date to combine those 2 like I did earlier for the rush hour analysis 
+# SK What is the point in finding a midpoint when start and end dates are the same? You already 
+# filtered out multi-day trips above.
 clean_trip3 <- clean_trip3 %>%
   mutate(midpoint_date = as.Date((as.numeric(start_date) + as.numeric(end_date)) / 2, origin = "1970-01-01"))
 
@@ -322,6 +360,7 @@ weather_trip_combined <- clean_trip3 %>%
 
 
 #setting up correlation variables that will be used the plot, here I am adding both duration values 
+# SK It might have been good to include the weather event data in the correlation plot as well.
 selected_cor <- weather_trip_combined %>% 
   select(total_trips, total_duration, max_temperature_f, mean_temperature_f, min_temperature_f, max_visibility_miles, mean_visibility_miles, min_visibility_miles, max_wind_Speed_mph, mean_wind_speed_mph, max_gust_speed_mph, precipitation_inches)
 
